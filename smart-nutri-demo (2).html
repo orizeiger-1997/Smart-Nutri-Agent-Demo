@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Nutri-Agent — Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050B17;--bg2:#0B1628;--bg3:#0E1C30;
+  --cyan:#00D4FF;--green:#34D399;--purple:#A78BFA;--amber:#FBB040;--red:#F87171;
+  --white:#FFFFFF;--gray1:#E2E8F0;--gray2:#94A3B8;--gray3:#475569;--gray4:#1E3A5F;
+  --border:#1A3050;
+}
+html,body{margin:0;padding:0;font-family:'Rubik',sans-serif;background:var(--bg);color:var(--white);direction:rtl;min-height:100vh;}
+body::before{content:'';position:fixed;top:-30vh;right:-20vw;width:70vw;height:70vw;background:radial-gradient(circle,rgba(0,212,255,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-20vh;left:-20vw;width:60vw;height:60vw;background:radial-gradient(circle,rgba(167,139,250,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+.page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;}
+
+/* HEADER */
+.title-block{text-align:center;margin-bottom:28px;}
+.eyebrow{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--cyan);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;}
+.title-block h1{font-size:clamp(24px,4vw,44px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;}
+.accent{background:linear-gradient(90deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.title-block p{margin-top:10px;font-size:14px;color:var(--gray2);max-width:540px;line-height:1.6;}
+
+/* DEMO LAYOUT */
+.demo-wrap{display:flex;align-items:flex-start;justify-content:center;gap:0;width:100%;max-width:980px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+
+/* LEFT — CODE + TERMINAL */
+.code-side{flex:1;min-width:0;border-left:1px solid var(--border);}
+
+/* IDE */
+.ide-hdr{background:#161B22;padding:11px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.ide-dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
+.ide-title{flex:1;text-align:center;font-size:12px;color:var(--gray3);font-family:'JetBrains Mono',monospace;}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);border-radius:6px;color:var(--cyan);cursor:pointer;font-family:'Rubik',sans-serif;}
+.ide-editor{padding:16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.8;color:var(--gray1);background:#0D1117;max-height:220px;overflow-y:auto;direction:ltr;text-align:left;}
+.ide-editor::-webkit-scrollbar{width:4px;}.ide-editor::-webkit-scrollbar-thumb{background:var(--border);}
+.kw{color:#FF7B72;}.fn{color:#D2A8FF;}.cm{color:#6E7681;font-style:italic;}.st{color:#A5D6FF;}.num{color:#F0883E;}
+
+/* TERMINAL */
+.term-hdr{background:#161B22;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.term-hdr span{font-size:11px;color:var(--gray3);font-family:'JetBrains Mono',monospace;}
+.btn-run{font-size:12px;padding:5px 14px;background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;border-radius:6px;color:#000;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;}
+.btn-run:disabled{opacity:0.5;cursor:default;}
+#term-out{padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.85;min-height:180px;max-height:220px;overflow-y:auto;background:#0D1117;direction:ltr;text-align:left;color:var(--gray1);}
+#term-out::-webkit-scrollbar{width:4px;}.#term-out::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* NOTE BOX */
+.note-box{margin:10px 14px;padding:10px 13px;background:rgba(255,224,102,0.08);border:1px solid rgba(255,224,102,0.28);border-radius:9px;font-size:12px;color:var(--gray1);line-height:1.6;direction:rtl;text-align:right;display:flex;align-items:flex-start;gap:8px;}
+.note-box-icon{font-size:16px;flex-shrink:0;}
+.note-box strong{color:#FFE066;}
+
+/* RIGHT — PHONE */
+.phone-side{width:300px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:24px 20px;gap:16px;background:var(--bg2);}
+.phone-label{font-size:10px;color:var(--gray3);font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;text-transform:uppercase;}
+.phone-outer{width:220px;background:#1C1C1E;border-radius:44px;padding:6px;box-shadow:0 0 0 1px #3A3A3C,0 24px 60px rgba(0,0,0,0.7);}
+.phone-screen{background:#F2F2F7;border-radius:38px;overflow:hidden;height:450px;position:relative;}
+
+/* iOS STATUS */
+.ios-status{background:#F2F2F7;height:38px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 5px;position:relative;z-index:10;}
+.ios-time{font-size:12px;font-weight:600;color:#000;direction:ltr;}
+.ios-batt{display:flex;gap:4px;align-items:center;}
+.ios-batt svg{fill:#000;}
+
+/* CALENDAR */
+#calView{position:absolute;inset:0;background:#fff;z-index:4;display:flex;flex-direction:column;}
+.cal-chrome{background:#F2F2F7;padding:8px 12px 4px;border-bottom:0.5px solid #C6C6C8;display:flex;align-items:center;justify-content:space-between;}
+.cal-app{font-size:11px;font-weight:600;color:#000;}
+.cal-month{font-size:10px;color:#8E8E93;}
+.time-grid-ios{flex:1;padding:4px 8px;overflow:hidden;position:relative;}
+.time-row-ios{display:flex;gap:6px;height:52px;align-items:flex-start;padding-top:2px;}
+.time-lbl-ios{font-size:8px;width:28px;text-align:left;margin-top:1px;color:#8E8E93;font-variant-numeric:tabular-nums;direction:ltr;flex-shrink:0;}
+.time-track-ios{flex:1;border-top:0.5px solid #C6C6C8;position:relative;height:48px;}
+.evt-ios{position:absolute;top:2px;left:0;right:0;border-radius:4px;padding:3px 5px;height:44px;}
+.evt-ios .t{font-size:8px;font-weight:600;color:#fff;}
+.evt-ios .s{font-size:7px;color:rgba(255,255,255,0.8);}
+.free-track-ios{flex:1;border-top:1.5px solid #34C759;background:rgba(52,199,89,0.09);border-radius:3px;position:relative;height:48px;}
+.free-badge-ios{position:absolute;top:3px;left:4px;font-size:8px;font-weight:700;color:#34C759;}
+.free-time-ios{position:absolute;bottom:4px;left:4px;font-size:7px;color:#34C759;}
+
+/* SCAN OVERLAY */
+.scan-overlay{position:absolute;inset:0;background:rgba(5,11,23,0.75);z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.scan-overlay.visible{opacity:1;}
+.scan-ring{width:48px;height:48px;border-radius:50%;border:2px solid var(--cyan);border-top-color:transparent;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-txt{font-size:12px;font-weight:600;color:var(--cyan);}
+.scan-sub-txt{font-size:10px;color:var(--gray2);}
+
+/* NOTIFICATION */
+.notif-wrap{position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:9;display:flex;align-items:flex-start;justify-content:center;padding-top:10px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.notif-wrap.visible{opacity:1;pointer-events:all;}
+.notif-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:14px;padding:12px 13px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.notif-hdr{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.notif-app-icon{width:18px;height:18px;background:linear-gradient(135deg,#34C759,#00C7BE);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.notif-app-name{font-size:10px;font-weight:600;color:#8E8E93;text-transform:uppercase;letter-spacing:0.04em;direction:ltr;}
+.notif-time{font-size:10px;color:#8E8E93;margin-right:auto;}
+.notif-title{font-size:12px;font-weight:700;color:#000;margin-bottom:3px;direction:rtl;}
+.notif-body{font-size:11px;color:#333;line-height:1.4;direction:rtl;margin-bottom:8px;}
+.notif-sep{height:0.5px;background:#C6C6C8;margin:7px 0;}
+.notif-actions{display:flex;gap:6px;}
+.btn-decline-ios{flex:1;padding:8px;background:#F2F2F7;border:0.5px solid #C6C6C8;border-radius:8px;color:#FF3B30;font-size:12px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;}
+.btn-approve-ios{flex:2;padding:8px;background:#34C759;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rubik',sans-serif;}
+
+/* RESULT SCREENS */
+.result-screen{position:absolute;inset:0;background:#F2F2F7;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.result-screen.show{opacity:1;pointer-events:all;}
+.result-icon-wrap{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;animation:pop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.result-title{font-size:16px;font-weight:700;color:#000;margin-bottom:5px;}
+.result-body{font-size:12px;color:#8E8E93;line-height:1.5;margin-bottom:14px;}
+.order-card-ios{background:#fff;border-radius:12px;padding:12px 14px;width:100%;text-align:right;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:12px;}
+.order-row-ios{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:0.5px solid #F2F2F7;}
+.order-row-ios:last-child{border:none;}
+.order-row-ios .lbl{color:#8E8E93;}
+.prog-wrap{margin-top:8px;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:9px;color:#8E8E93;margin-bottom:4px;}
+.prog-track{height:4px;background:#E5E5EA;border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:#34C759;width:25%;border-radius:2px;transition:width 3s ease;}
+.btn-reset-ios{padding:9px 20px;background:#F2F2F7;border:0.5px solid #C6C6C8;border-radius:10px;color:#007AFF;font-size:12px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;}
+
+/* PHONE STATUS + STEP */
+.phone-status{width:100%;text-align:center;}
+.demo-step-row{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:10px;}
+.demo-dots{display:flex;gap:5px;}
+.demo-dot{width:8px;height:8px;border-radius:50%;background:var(--gray4);transition:all 0.3s;}
+.demo-dot.active{background:var(--cyan);transform:scale(1.3);}
+.demo-dot.done{background:var(--green);}
+.demo-step-label{font-size:11px;color:var(--gray2);font-family:'JetBrains Mono',monospace;}
+.trigger-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;border-radius:30px;font-size:14px;font-weight:700;color:#000;cursor:pointer;font-family:'Rubik',sans-serif;transition:transform 0.2s;width:100%;justify-content:center;}
+.trigger-btn:hover{transform:scale(1.03);}
+.trigger-btn:disabled{opacity:0.5;cursor:default;transform:none;}
+.status-msg{font-size:11px;color:var(--gray2);direction:rtl;line-height:1.7;margin-top:8px;text-align:center;}
+.status-msg .hl{color:var(--cyan);}
+.status-msg .ok{color:var(--green);}
+
+/* FOOTER */
+footer{margin-top:24px;text-align:center;color:var(--gray3);font-size:11px;position:relative;z-index:1;}
+footer strong{color:var(--gray2);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <div class="eyebrow">Smart Nutri-Agent · Group 40 · Shenkar College</div>
+    <h1>ראה את הסוכן <span class="accent">בפעולה</span></h1>
+    <p>לחץ "הפעל" — הסוכן יסרוק את היומן, ימצא חלון פנוי, וישלח לך בקשת אישור לפני כל הזמנה.</p>
+  </div>
+
+  <div class="demo-wrap">
+
+    <!-- LEFT: CODE + TERMINAL -->
+    <div class="code-side">
+      <!-- IDE -->
+      <div class="ide-hdr">
+        <span class="ide-dot" style="background:#FF5F56;"></span>
+        <span class="ide-dot" style="background:#FFBD2E;"></span>
+        <span class="ide-dot" style="background:#27C93F;"></span>
+        <div class="ide-title">nutri_pilot.py — Smart Nutri-Agent</div>
+        <button class="copy-btn" onclick="copyCode()">העתק קוד 📋</button>
+      </div>
+      <div class="ide-editor" id="code-block"><span class="kw">import</span> os, requests
+<span class="kw">from</span> google.oauth2.credentials <span class="kw">import</span> Credentials
+<span class="kw">from</span> googleapiclient.discovery <span class="kw">import</span> build
+
+<span class="cm"># 🔒 SECURITY: OAuth 2.0 scopes — read-only</span>
+SCOPES = [<span class="st">'https://www.googleapis.com/auth/calendar.readonly'</span>]
+
+<span class="kw">def</span> <span class="fn">get_secure_credentials</span>(user_id):
+    <span class="cm">"""Load OAuth token — never store plain passwords."""</span>
+    token = os.environ.get(<span class="st">f'OAUTH_TOKEN_{user_id.upper()}'</span>)
+    <span class="kw">return</span> Credentials(token=token, scopes=SCOPES)
+
+<span class="kw">def</span> <span class="fn">run_pilot</span>():
+    users = [<span class="st">"noya"</span>, <span class="st">"amit"</span>, <span class="st">"ori"</span>]
+    creds = {u: get_secure_credentials(u) <span class="kw">for</span> u <span class="kw">in</span> users}
+    <span class="cm"># 2. Fetch FreeBusy — no meeting content exposed</span>
+    <span class="cm"># 3. AI recommendation via Gemini</span>
+    <span class="cm"># 4. Wolt Group Order (awaits human approval)</span></div>
+
+      <!-- TERMINAL -->
+      <div class="term-hdr">
+        <span>zsh — nutri_pilot simulator</span>
+        <button class="btn-run" id="runBtn" onclick="runSim()">הרץ סקריפט ▶</button>
+      </div>
+      <div id="term-out">orizeiger@macbook ~/nutri_pilot % _</div>
+
+      <!-- NOTE -->
+      <div class="note-box">
+        <span class="note-box-icon">💡</span>
+        <div>
+          <strong>הערה על בחירת מנוע ה-AI:</strong> הדמו מופעל על <strong>Gemini 2.5 Flash</strong> (גישה חינמית לפיילוט). בתכנון הייצור בחרנו ב-<strong>Claude API</strong> של Anthropic — עלות נמוכה יותר בקנה מידה גדול.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PHONE -->
+    <div class="phone-side">
+      <div class="phone-label">Push Notification · Google Calendar</div>
+
+      <div class="phone-outer">
+        <div class="phone-screen">
+          <div class="ios-status">
+            <span class="ios-time">9:41</span>
+            <div class="ios-batt">
+              <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="1" width="13" height="9" rx="2" stroke="#000" stroke-width="1" fill="none"/><rect x="1" y="2.5" width="9" height="6" rx="1" fill="#000"/><rect x="14" y="3.5" width="1" height="4" rx="0.5" fill="#000"/></svg>
+            </div>
+          </div>
+
+          <div id="calView">
+            <div class="cal-chrome">
+              <span class="cal-app">Google Calendar</span>
+              <span class="cal-month">יוני 2026</span>
+            </div>
+            <div class="time-grid-ios">
+              <div class="scan-overlay" id="scan-overlay">
+                <div class="scan-ring"></div>
+                <div class="scan-txt">סוכן סורק...</div>
+                <div class="scan-sub-txt" id="scan-sub">FreeBusy API</div>
+              </div>
+              <div class="time-row-ios">
+                <span class="time-lbl-ios">09:00</span>
+                <div class="time-track-ios"><div class="evt-ios" style="background:#FF3B30;height:30px;"><div class="t">Daily Stand-up</div><div class="s">09:00–09:30</div></div></div>
+              </div>
+              <div class="time-row-ios">
+                <span class="time-lbl-ios">10:00</span>
+                <div class="time-track-ios"><div class="evt-ios" style="background:#007AFF;"><div class="t">ביקורת קוד</div><div class="s">10:00–11:00</div></div></div>
+              </div>
+              <div class="time-row-ios">
+                <span class="time-lbl-ios" style="color:#34C759;font-weight:700;">11:00</span>
+                <div class="free-track-ios"><span class="free-badge-ios">פנוי ✓</span><span class="free-time-ios">11:00–12:00</span></div>
+              </div>
+              <div class="time-row-ios">
+                <span class="time-lbl-ios">12:00</span>
+                <div class="time-track-ios"><div class="evt-ios" style="background:#5856D6;"><div class="t">פגישת לקוח</div><div class="s">12:00–13:00</div></div></div>
+              </div>
+              <div class="time-row-ios">
+                <span class="time-lbl-ios">14:00</span>
+                <div class="time-track-ios"><div class="evt-ios" style="background:#FF9500;height:30px;"><div class="t">ריאיון מועמד</div></div></div>
+              </div>
+            </div>
+            <div class="notif-wrap" id="notif-wrap">
+              <div class="notif-card">
+                <div class="notif-hdr">
+                  <div class="notif-app-icon">🤖</div>
+                  <span class="notif-app-name">Smart Nutri-Agent</span>
+                  <span class="notif-time">עכשיו</span>
+                </div>
+                <div class="notif-title">נמצא חלון זמן משותף! 🎯</div>
+                <div class="notif-body"><strong>11:00–12:00</strong> · 3 עובדים פנויים<br>המלצה: <strong>גודנס</strong> — קערות בריאות · ETA <strong>25 דק'</strong></div>
+                <div class="notif-sep"></div>
+                <div class="notif-actions">
+                  <button class="btn-decline-ios" onclick="handleDecline()">דחה</button>
+                  <button class="btn-approve-ios" onclick="handleApprove()">אשר הזמנה ✓</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-screen" id="success-screen">
+            <div class="result-icon-wrap" style="background:#E8FDF3;">✅</div>
+            <div class="result-title">ההזמנה בוצעה!</div>
+            <div class="result-body">הסוכן שלח הזמנה קבוצתית ל-Wolt עבור 3 סועדים</div>
+            <div class="order-card-ios">
+              <div class="order-row-ios"><span class="lbl">מסעדה</span><strong>גודנס (Goodness)</strong></div>
+              <div class="order-row-ios"><span class="lbl">פריטים</span><strong>3 קערות בריאות</strong></div>
+              <div class="order-row-ios"><span class="lbl">מס' הזמנה</span><strong>#WLT-8821</strong></div>
+              <div class="order-row-ios"><span class="lbl">ETA</span><strong style="color:#34C759;">25 דקות</strong></div>
+              <div class="prog-wrap">
+                <div class="prog-lbl"><span>בהכנה</span><span>בדרך אליך</span></div>
+                <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+              </div>
+            </div>
+            <button class="btn-reset-ios" onclick="resetDemo()">הפעל מחדש ↺</button>
+          </div>
+
+          <div class="result-screen" id="declined-screen">
+            <div class="result-icon-wrap" style="background:#FFF2F2;">🚫</div>
+            <div class="result-title">ההמלצה נדחתה</div>
+            <div class="result-body"><strong>Human-in-the-Loop</strong> בפעולה —<br>AI ממליץ בלבד, האדם מחליט.</div>
+            <button class="btn-reset-ios" onclick="resetDemo()">הפעל מחדש ↺</button>
+          </div>
+
+        </div><!-- phone-screen -->
+      </div><!-- phone-outer -->
+
+      <div class="phone-status">
+        <div class="demo-step-row">
+          <div class="demo-dots">
+            <div class="demo-dot active" id="dot1"></div>
+            <div class="demo-dot" id="dot2"></div>
+            <div class="demo-dot" id="dot3"></div>
+            <div class="demo-dot" id="dot4"></div>
+          </div>
+          <span class="demo-step-label" id="step-lbl">ממתין להפעלה</span>
+        </div>
+        <button class="trigger-btn" id="trigger-btn" onclick="startAgent()">▶ הפעל סוכן</button>
+        <p class="status-msg" id="status-msg">לחץ להפעלת הסוכן — הוא יסרוק את היומנים וישלח התראה עם בקשת אישור.</p>
+      </div>
+    </div>
+
+  </div><!-- demo-wrap -->
+
+  <footer>
+    <strong>Smart Nutri-Agent</strong> · Group 40 · IoT &amp; Digital Systems Integration · Shenkar 2025–2026<br>
+    <span style="display:block;margin-top:4px;">נויה פלג &nbsp;·&nbsp; נועם מואיל &nbsp;·&nbsp; אורי זייגר &nbsp;·&nbsp; עמית זיסמן</span>
+  </footer>
+
+</div>
+
+<script>
+function copyCode(){
+  var txt=document.getElementById('code-block').innerText;
+  var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  var b=document.querySelector('.copy-btn');b.innerHTML='הועתק! ✓';setTimeout(function(){b.innerHTML='העתק קוד 📋';},2000);
+}
+
+function runSim(){
+  document.getElementById('runBtn').disabled=true;
+  var t=document.getElementById('term-out');
+  t.innerHTML='orizeiger@macbook ~/nutri_pilot % python3 nutri_pilot.py<br>';
+  var logs=[
+    "<span style='color:var(--cyan)'>====================================</span>",
+    "  <strong style='color:var(--white)'>Smart Nutri-Agent — Pilot v1.0</strong>",
+    "<span style='color:var(--cyan)'>====================================</span>",
+    "<span style='color:#FBB040'>🔒 OAuth 2.0 tokens loaded (read-only)</span>",
+    "→  Fetching FreeBusy (no content access)...",
+    "   noya: 0 conflicts",
+    "   amit: 0 conflicts | ori: 0 conflicts",
+    "<span style='color:var(--green)'>✓  Common window found: 11:00 – 12:00</span>",
+    "→  Running Gemini AI recommendation...",
+    "<span style='background:rgba(255,224,102,0.12);color:#FFE066;font-weight:600;padding:1px 6px;border-radius:3px;'>⚠  Demo: Gemini 2.5 Flash  |  Production plan: Claude API (cost efficiency)</span>",
+    "   <span style='color:var(--green)'>✓  Recommendation: <strong style='color:var(--white)'>Goodness (גודנס)</strong> — קערות בריאות</span>",
+    "→  Creating Wolt Group Order (3 users)...",
+    "   <span style='color:var(--green)'>✓  Order #WLT-8821 | ETA: 25 min</span>",
+    "",
+    "<strong style='color:var(--green)'>✅ DONE — Pilot completed securely!</strong>",
+    "orizeiger@macbook ~/nutri_pilot % "
+  ];
+  var i=0;var iv=setInterval(function(){if(i<logs.length){t.innerHTML+=logs[i]+'<br>';t.scrollTop=t.scrollHeight;i++;}else{clearInterval(iv);}},300);
+}
+
+var dstate='idle';
+function setDot(n){for(var i=1;i<=4;i++){var d=document.getElementById('dot'+i);if(d){if(i<n)d.className='demo-dot done';else if(i===n)d.className='demo-dot active';else d.className='demo-dot';}}}
+
+function startAgent(){
+  if(dstate!=='idle')return;
+  dstate='scanning';
+  document.getElementById('trigger-btn').disabled=true;
+  setDot(2);
+  document.getElementById('step-lbl').textContent='סורק יומנים...';
+  document.getElementById('status-msg').innerHTML='קריאה ל-Google Calendar FreeBusy API...<br><span class="hl">noya · amit · ori</span>';
+  document.getElementById('scan-overlay').classList.add('visible');
+  var txts=['noya: פנוי','amit: פנוי','ori: פנוי','חלון משותף נמצא!'];
+  var ti=0;
+  var t=setInterval(function(){ti++;if(ti<txts.length)document.getElementById('scan-sub').textContent=txts[ti];else clearInterval(t);},400);
+  setTimeout(function(){
+    document.getElementById('scan-overlay').classList.remove('visible');
+    setDot(3);
+    document.getElementById('step-lbl').textContent='ממתין לאישורך';
+    document.getElementById('status-msg').innerHTML='ההתראה נשלחה! <span class="hl">הסוכן ממתין</span> — אין הזמנה ללא אישורך.';
+    dstate='notified';
+    document.getElementById('notif-wrap').classList.add('visible');
+  },2400);
+}
+
+function handleApprove(){
+  if(dstate!=='notified')return;
+  dstate='approved';
+  setDot(4);
+  document.getElementById('step-lbl').textContent='הזמנה בוצעה!';
+  document.getElementById('status-msg').innerHTML='<span class="ok">Order #WLT-8821 · גודנס · 3 סועדים · ETA 25 דק\'</span>';
+  document.getElementById('notif-wrap').classList.remove('visible');
+  document.getElementById('success-screen').classList.add('show');
+  setTimeout(function(){document.getElementById('prog').style.width='80%';},400);
+}
+
+function handleDecline(){
+  if(dstate!=='notified')return;
+  dstate='declined';
+  document.getElementById('step-lbl').textContent='נדחה — Human-in-the-Loop ✓';
+  document.getElementById('status-msg').innerHTML='הסוכן לא ביצע הזמנה. <span class="hl">Human-in-the-Loop</span> בפעולה.';
+  document.getElementById('notif-wrap').classList.remove('visible');
+  document.getElementById('declined-screen').classList.add('show');
+}
+
+function resetDemo(){
+  dstate='idle';
+  setDot(1);
+  document.getElementById('step-lbl').textContent='ממתין להפעלה';
+  document.getElementById('status-msg').textContent='לחץ להפעלת הסוכן — הוא יסרוק את היומנים וישלח התראה עם בקשת אישור.';
+  document.getElementById('scan-overlay').classList.remove('visible');
+  document.getElementById('notif-wrap').classList.remove('visible');
+  document.getElementById('success-screen').classList.remove('show');
+  document.getElementById('declined-screen').classList.remove('show');
+  document.getElementById('trigger-btn').disabled=false;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('scan-sub').textContent='FreeBusy API';
+  var p=document.getElementById('prog');p.style.transition='none';p.style.width='25%';
+  setTimeout(function(){p.style.transition='width 3s ease';},50);
+}
+</script>
+</body>
+</html>
